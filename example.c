@@ -12,7 +12,7 @@ void handler_create(request_s * request, response_s * response)
 {
 	const char *id = PARAMS("id");
 	const char *name = PARAMS("name");
-	if(id && name) {
+	if(id && name && strlen(id) && strlen(name)) {
 		redisReply *reply = redisCommand(bugart_global_context.rc, "HSET User:%s %s %s", id, "name", name);
 		if(reply) {
 			BODY("User created.");
@@ -26,7 +26,7 @@ void handler_create(request_s * request, response_s * response)
 void handler_show(request_s * request, response_s * response)
 {
 	const char *id = PARAMS("id");
-	if(id) {
+	if(id && strlen(id)) {
 		redisReply *reply = redisCommand(bugart_global_context.rc, "HGET User:%s %s", id, "name");
 		if(reply) {
 			if(reply->str) {
@@ -34,7 +34,7 @@ void handler_show(request_s * request, response_s * response)
 				view("index.cml",m);
 				trie_free(m);
 			} else {
-				BODY("No such user2.");
+				BODY("No such user (id=\"%s\")",id);
 			}
 			freeReplyObject(reply);
 		}
