@@ -33,24 +33,28 @@ typedef struct {
         void (*init_func)();
         Handler not_found;
         Route * route;
-} BogartContext;
+} BugartContext;
 
-#define LAMBDA(c_) ({ c_ _;})
-
-#define Bogart \
-    BogartContext globalContext; \
-    void setupHandlers(BogartContext * bugart)
+#define Bugart \
+    BugartContext globalContext; \
+    void setupHandlers(BugartContext * bugart)
 
 #define Start(_port)                            \
         finalizeRoutes(bugart->route);         \
     }                                           \
     int main() {                                \
-        startBogart(_port, &globalContext);     \
+        startBugart(_port, &globalContext);     \
         return 0;
 
-#define get(_pattern)                                                   \
-        nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = ^ void (Request * request, Response * response)
-//	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = ^ void (Request * request, Response * response)
+//#define get(_pattern)
+//	nextRoute("/hello", EVHTTP_REQ_GET, bugart)->handler = LAMBDA(void _(Request * request, Response * response)
+
+#define get_end() );
+
+#define get(_pattern)  \
+	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = LAMBDA(void _(Request * request, Response * response)
+
+#define LAMBDA(c_) ({ c_ _;})
 
 #define post(_pattern)                                                  \
     nextRoute(_pattern, EVHTTP_REQ_POST, bugart)->handler = ^ void (Request * request, Response * response)
@@ -65,8 +69,8 @@ typedef struct {
 
 const char * getParam(Request *, const char *);
 void setBody(Response *, const char *, ...);
-void startBogart(uint16_t, BogartContext *);
-Route * nextRoute(char *, enum evhttp_cmd_type, BogartContext *);
+void startBugart(uint16_t, BugartContext *);
+Route * nextRoute(char *, enum evhttp_cmd_type, BugartContext *);
 void finalizeRoutes(Route *);
 
 typedef struct {
@@ -106,6 +110,8 @@ Map modelGet(RedisModel, char **, char *);
 */
 
 #define UseRedis                                      \
-    int _redisFd;                                     \
-    redisConnect("127.0.0.1", 6379)
-//    redisConnect(&_redisFd, "127.0.0.1", 6379)
+    redisContext *_redisFd;                                     \
+    _redisFd = redisConnect("127.0.0.1", 6379)
+
+#define FreeRedis   \
+    redisFree(_redisFd)

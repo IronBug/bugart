@@ -85,7 +85,7 @@ Route * match_route(Route * route, Request * req)
         return NULL;
 }
 
-Route * nextRoute(char * pattern, enum evhttp_cmd_type type, BogartContext * bugart)
+Route * nextRoute(char * pattern, enum evhttp_cmd_type type, BugartContext * bugart)
 {
         Route * new_route = (Route *) malloc(sizeof(Route));
         new_route->pattern = pattern;
@@ -164,13 +164,13 @@ void finalizeRoutes(Route * route)
         }
 }
 
-void setupHandlers(BogartContext *);
+void setupHandlers(BugartContext *);
 
 void request_handler(struct evhttp_request * ev_req, void * context)
 {
         struct timeval t0, t1, tr;
 
-        BogartContext * bugart = (BogartContext *) context;
+        BugartContext * bugart = (BugartContext *) context;
 
         gettimeofday(&t0, NULL);
 
@@ -194,25 +194,25 @@ void request_handler(struct evhttp_request * ev_req, void * context)
         printf("Request processed in: %lu secs, %lu usecs\n", tr.tv_sec, tr.tv_usec);
 }
 
-void setupBogart(BogartContext * bugart)
+void setupBugart(BugartContext * bugart)
 {
         //bugart->not_found = BOGART_NOT_FOUND_DEFAULT;
         bugart->not_found = LAMBDA(void _(Request * request, Response * response) {});
-        setupHandlers(bugart);
+	setupHandlers(bugart);
 }
 
-void startBogart(uint16_t port, BogartContext * bugart)
+void startBugart(uint16_t port, BugartContext * bugart)
 {
         bugart->port = port;
 
-        setupBogart(bugart);
+        setupBugart(bugart);
 
         struct event_base * base = event_init();
         struct evhttp * http = evhttp_new(base);
-        evhttp_bind_socket(http, "0.0.0.0", bugart->port);
+        evhttp_bind_socket(http, "127.0.0.1", bugart->port);
         evhttp_set_gencb(http, request_handler, bugart);
 
-        printf("Showtime! Bogart's ready on camera %u...\n", bugart->port);
+        printf("Showtime! Bugart's ready on camera %u...\n", bugart->port);
 
         event_loop(0);
 
