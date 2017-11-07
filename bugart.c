@@ -89,6 +89,8 @@ Route * nextRoute(char * pattern, enum evhttp_cmd_type type, BugartContext * bug
 {
         Route * new_route = (Route *) malloc(sizeof(Route));
         new_route->pattern = pattern;
+        new_route->next = NULL;
+        new_route->type = type;
         if(bugart->route) {
                 Route * cursor = bugart->route;
                 while(cursor->next)
@@ -159,7 +161,8 @@ void setBody(Response * response, const char * pattern, ...)
 void finalizeRoutes(Route * route)
 {
         while(route) {
-                //route->handler = Block_copy(route->handler); // ???? todo: check this !!!!
+                //route->handler = route->handler(route->);//Block_copy(route->handler); // ???? todo: check this !!!!
+                printf("Finalizing route %p\n",route);
                 route = route->next;
         }
 }
@@ -194,10 +197,15 @@ void request_handler(struct evhttp_request * ev_req, void * context)
         printf("Request processed in: %lu secs, %lu usecs\n", tr.tv_sec, tr.tv_usec);
 }
 
+void handler_not_found(Request * request, Response * response)
+{
+	printf("Handler: Not found\n");
+}
+
 void setupBugart(BugartContext * bugart)
 {
         //bugart->not_found = BOGART_NOT_FOUND_DEFAULT;
-        bugart->not_found = LAMBDA(void _(Request * request, Response * response) {});
+        bugart->not_found = handler_not_found;//LAMBDA(void _(Request * request, Response * response) {});
 	setupHandlers(bugart);
 }
 

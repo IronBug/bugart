@@ -51,8 +51,11 @@ typedef struct {
 
 #define get_end() );
 
-#define get(_pattern)  \
-	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = LAMBDA(void _(Request * request, Response * response)
+//#define get(_pattern)  \
+//	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = LAMBDA(void _(Request * request, Response * response)
+
+#define get(_pattern,_function)  \
+	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = _function;
 
 #define LAMBDA(c_) ({ c_ _;})
 
