@@ -113,14 +113,14 @@ typedef struct
 	char * name;
 	int redisFd;
 	ModelField * field;
-} RedisModel;
+} redis_model_s;
 
-void modelCreate(RedisModel, char **, char *, Map);
-Map modelGet(RedisModel, char **, char *);
+void model_create(redis_model_s, char **, char *, Map);
+Map modelGet(redis_model_s, char **, char *);
 
-#define Model(_name, ...)			\
+#define MODEL(_name, ...)			\
 	char * _name##_fields[] = __VA_ARGS__;	\
-	RedisModel _name##Model = { #_name, _redisFd, _name##_fields, sizeof(_name##_fields) }
+	redis_model_s _name##_model = { #_name, _redisFd, _name##_fields, sizeof(_name##_fields) }
 */
 
 #define USE_REDIS	\

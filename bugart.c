@@ -227,7 +227,7 @@ void start_bugart(uint16_t port, bugart_context_s * bugart)
 	event_loop(0);
 }
 /*
-void modelCreate(RedisModel model, char * fields[], char * key, Map attrs) {
+void model_create(redis_model_s model, char * fields[], char * key, Map attrs) {
 	int i;
 	for(i = 0; i < model.fieldCount ; i++) {
 		char * field = fields[i];
@@ -237,7 +237,7 @@ void modelCreate(RedisModel model, char * fields[], char * key, Map attrs) {
     }
 }
 
-Map modelGet(RedisModel model, char * fields[], char * key) {
+Map modelGet(redis_model_s model, char * fields[], char * key) {
 	int i;
 	Map record = trie_new();
 	for(i = 0; i < model.fieldCount ; i++) {

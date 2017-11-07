@@ -46,7 +46,7 @@ void handler_show(request_s * request, response_s * response)
 BUGART
 {
 	USE_REDIS;
-	//Model(User, "name", "email");
+	//MODEL(User, "name", "email");
 
 	GET("/hello",handler_hello);
 
