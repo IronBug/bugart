@@ -33,10 +33,13 @@ typedef struct {
         void (*init_func)();
         Handler not_found;
         Route * route;
+	redisContext *rc;
 } BugartContext;
 
+#define BugartContextDefine \
+    BugartContext globalContext;
+
 #define Bugart \
-    BugartContext globalContext; \
     void setupHandlers(BugartContext * bugart)
 
 #define Start(_port)                            \
@@ -46,12 +49,9 @@ typedef struct {
         startBugart(_port, &globalContext);     \
         return 0;
 
-//#define get(_pattern)
-//	nextRoute("/hello", EVHTTP_REQ_GET, bugart)->handler = LAMBDA(void _(Request * request, Response * response)
-
 #define get_end() );
 
-//#define get(_pattern)  \
+//#define get(_pattern)
 //	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = LAMBDA(void _(Request * request, Response * response)
 
 #define get(_pattern,_function)  \
@@ -113,8 +113,7 @@ Map modelGet(RedisModel, char **, char *);
 */
 
 #define UseRedis                                      \
-    redisContext *_redisFd;                                     \
-    _redisFd = redisConnect("127.0.0.1", 6379)
+    globalContext.rc = redisConnect("127.0.0.1", 6379)
 
 #define FreeRedis   \
-    redisFree(_redisFd)
+    redisFree(globalContext.rc)

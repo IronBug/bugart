@@ -1,8 +1,34 @@
 #include <stdio.h>
 #include "bugart.h"
 
-void handler_hello(Request * request, Response * response) {
-                body("<h1>Hello, World!</h1>");
+BugartContextDefine;
+
+void handler_hello(Request * request, Response * response)
+{
+	body("<h1>Hello, World!</h1>");
+}
+
+void handler_create(Request * request, Response * response)
+{
+	const char *id = params("id");
+	const char *name = params("name");
+	if(id && name) {
+		redisCommand(globalContext.rc, "HSET User:%s %s %s", id, "name", name);
+		body("User created.");
+	} else {
+		body("Error: Params \"id\" and \"name\" required.");
+	}
+}
+
+void handler_show(Request * request, Response * response)
+{
+	const char *id = params("id");
+	if(id) {
+		redisReply *reply = redisCommand(globalContext.rc, "HGET User:%s %s", id, "name");
+		view("index.cml", map("name", reply->str));
+	} else {
+		body("Error: Param \"id\" required.");
+	}
 }
 
 Bugart {
@@ -11,17 +37,11 @@ Bugart {
 
         get("/hello",handler_hello);
 
-#if 0
-        get("/create") {
-                redisCommand(_redisFd, "HSET User:%s %s %s", params("id"), "name", params("name"));
-                body("User created.");
-        });
+        get("/create",handler_create);
 
-        get("/show") {
-                redisReply *reply = redisCommand(_redisFd, "HGET User:%s %s", params("id"), "name");
-                view("index.cml", map("name", reply->str));
-        });
-#endif // 0
+        get("/show",handler_show);
+
         Start(11000);
-        //FreeRedis;
+        // todo:: add freeReplyObject everywhere !!!
+        //FreeRedis; // todo: put FreeRedis on closing everything.
 }
