@@ -1,8 +1,8 @@
 struct _Trie {
-        char state;
-        char * value;
-        struct _Trie * sibling;
-        struct _Trie * children;
+	char state;
+	char * value;
+	struct _Trie * sibling;
+	struct _Trie * children;
 };
 typedef struct _Trie Trie;
 

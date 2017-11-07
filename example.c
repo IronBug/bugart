@@ -44,16 +44,15 @@ void handler_show(Request * request, Response * response)
 }
 
 Bugart {
-        UseRedis;
-        //Model(User, "name", "email");
+	UseRedis;
+	//Model(User, "name", "email");
 
-        get("/hello",handler_hello);
+	get("/hello",handler_hello);
 
-        get("/create",handler_create);
+	get("/create",handler_create);
 
-        get("/show",handler_show);
+	get("/show",handler_show);
 
-        Start(11000);
-
-        //FreeRedis; // todo: put FreeRedis on closing everything.
+	Start(11000);
 }
+
