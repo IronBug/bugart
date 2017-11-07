@@ -216,15 +216,15 @@ void startBugart(uint16_t port, BugartContext * bugart)
         setupBugart(bugart);
 
         struct event_base * base = event_init();
-        struct evhttp * http = evhttp_new(base);
-        evhttp_bind_socket(http, "127.0.0.1", bugart->port);
-        evhttp_set_gencb(http, request_handler, bugart);
+        globalContext.http = evhttp_new(base);
+        evhttp_bind_socket(globalContext.http, "127.0.0.1", bugart->port);
+        evhttp_set_gencb(globalContext.http, request_handler, bugart);
 
         printf("Showtime! Bugart's ready on camera %u...\n", bugart->port);
 
         event_loop(0);
 
-        evhttp_free(http);
+//        evhttp_free(http);
 }
 /*
 void modelCreate(RedisModel model, char * fields[], char * key, Map attrs) {

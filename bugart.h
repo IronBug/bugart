@@ -1,5 +1,6 @@
 #include <event.h>
 #include <evhttp.h>
+#include <signal.h>
 #include <stdbool.h>
 //#include <Block.h>
 #include <string.h>
@@ -34,10 +35,20 @@ typedef struct {
         Handler not_found;
         Route * route;
 	redisContext *rc;
+	struct evhttp * http;
 } BugartContext;
 
 #define BugartContextDefine \
-    BugartContext globalContext;
+   BugartContext globalContext; \
+   void int_handler_func(int unused) \
+   { \
+	event_loopbreak(); \
+	if(globalContext.http) \
+		evhttp_free(globalContext.http); \
+        FreeRedis; \
+        printf("\nUser break received. Exiting.\n"); \
+   }
+
 
 #define Bugart \
     void setupHandlers(BugartContext * bugart)
@@ -46,6 +57,8 @@ typedef struct {
         finalizeRoutes(bugart->route);         \
     }                                           \
     int main() {                                \
+	/* set processing for Ctrl-C */		\
+        signal(SIGINT, int_handler_func);       \
         startBugart(_port, &globalContext);     \
         return 0;
 
@@ -117,3 +130,5 @@ Map modelGet(RedisModel, char **, char *);
 
 #define FreeRedis   \
     redisFree(globalContext.rc)
+
+extern BugartContext globalContext;
