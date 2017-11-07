@@ -86,7 +86,7 @@ typedef struct {
 	char * value;
 } CharTuple;
 
-typedef Trie * Map;
+typedef trie * Map;
 
 #define map(...) makeMap(NULL, __VA_ARGS__, NULL)
 Map makeMap(void *, ...);

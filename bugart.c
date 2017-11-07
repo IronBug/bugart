@@ -15,11 +15,11 @@ Map makeMap(void * dummy, ...)
 {
 	va_list ap;
 	char * key, * value;
-	Map newMap = Trie_new();
+	Map newMap = trie_new();
 
 	va_start(ap, dummy);
 	while((key = va_arg(ap, char *)) && (value = va_arg(ap, char *))) {
-		Trie_add(newMap, key, strlen(key), value);
+		trie_add(newMap, key, strlen(key), value);
 	}
 
 	return newMap;
@@ -119,7 +119,7 @@ void renderText(Response * response, char * template, Map args)
 		evbuffer_add(response->buffer, template, cursor - template);
 		template = cursor + sizeof(anchor) - 1;
 		cursor = strchr(template, '}');
-		val = Trie_get(args, template, cursor - template);
+		val = trie_get(args, template, cursor - template);
 		evbuffer_add(response->buffer, val, strlen(val));
 		template = cursor + 1;
 	}
@@ -234,7 +234,7 @@ void modelCreate(RedisModel model, char * fields[], char * key, Map attrs) {
 	int i;
 	for(i = 0; i < model.fieldCount ; i++) {
 		char * field = fields[i];
-		char * attr = Trie_get(attrs, field, strlen(field));
+		char * attr = trie_get(attrs, field, strlen(field));
 	if(attr)
 		redisCommand(model.redisFd, "HSET %s:%s %s %s", model.name, key, field, attr);
     }
@@ -242,12 +242,12 @@ void modelCreate(RedisModel model, char * fields[], char * key, Map attrs) {
 
 Map modelGet(RedisModel model, char * fields[], char * key) {
 	int i;
-	Map record = Trie_new();
+	Map record = trie_new();
 	for(i = 0; i < model.fieldCount ; i++) {
 		char * field = fields[i];
 		redisReply * reply = redisCommand(model.redisFd, "HGET %s:%s %s", model.name, key, field);
 	if(reply->type == REDIS_REPLY_STRING)
-		Trie_add(record, field, strlen(field), reply->reply);
+		trie_add(record, field, strlen(field), reply->reply);
     }
 }
 */

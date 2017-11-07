@@ -30,9 +30,9 @@ void handler_show(Request * request, Response * response)
 		redisReply *reply = redisCommand(globalContext.rc, "HGET User:%s %s", id, "name");
 		if(reply) {
 			if(reply->str) {
-				Trie *m =  map("name", reply->str);
+				trie *m =  map("name", reply->str);
 				view("index.cml",m);
-				Trie_free(m);
+				trie_free(m);
 			} else {
 				body("No such user2.");
 			}

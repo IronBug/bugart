@@ -1,13 +1,13 @@
-struct _Trie {
+struct _trie {
 	char state;
 	char * value;
-	struct _Trie * sibling;
-	struct _Trie * children;
+	struct _trie * sibling;
+	struct _trie * children;
 };
-typedef struct _Trie Trie;
+typedef struct _trie trie;
 
-Trie * Trie_new();
-void Trie_free(Trie *);
-Trie * Trie_node(char);
-void Trie_add(Trie *, char *, int, char *);
-char * Trie_get(Trie *, char *, int);
+trie * trie_new();
+void trie_free(trie *);
+trie * trie_node(char);
+void trie_add(trie *, char *, int, char *);
+char * trie_get(trie *, char *, int);

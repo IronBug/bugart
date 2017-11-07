@@ -1,44 +1,44 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct _Trie {
+struct _trie {
 	char state;
 	char * value;
-	struct _Trie * sibling;
-	struct _Trie * children;
+	struct _trie * sibling;
+	struct _trie * children;
 };
-typedef struct _Trie Trie;
+typedef struct _trie trie;
 
-Trie * Trie_new()
+trie * trie_new()
 {
-	Trie * trie = (Trie *) malloc(sizeof(Trie));
-	trie->state = '\0';
-	trie->value = NULL;
-	trie->sibling = NULL;
-	trie->children = NULL;
-	return trie;
+	trie * t = (trie *) malloc(sizeof(trie));
+	t->state = '\0';
+	t->value = NULL;
+	t->sibling = NULL;
+	t->children = NULL;
+	return t;
 }
 
-void Trie_free(Trie * trie)
+void trie_free(trie * t)
 {
-	if(trie->sibling)
-		Trie_free(trie->sibling);
-	if(trie->children)
-		Trie_free(trie->children);
-	free(trie);
+	if(t->sibling)
+		trie_free(t->sibling);
+	if(t->children)
+		trie_free(t->children);
+	free(t);
 }
 
-Trie * Trie_node(char state)
+trie * trie_node(char state)
 {
-	Trie * trie = Trie_new();
-	trie->state = state;
-	return trie;
+	trie * t = trie_new();
+	t->state = state;
+	return t;
 }
 
-void Trie_add(Trie * trie, char * data, int length, char * value)
+void trie_add(trie * t, char * data, int length, char * value)
 {
 	// look for the child
-	Trie * child = trie->children;
+	trie * child = t->children;
 	while(child) {
 		if(child->state == *data)
 			break;
@@ -47,22 +47,22 @@ void Trie_add(Trie * trie, char * data, int length, char * value)
 
 	// if the child doesn't exist add it
 	if(!child) {
-		child = Trie_node(*data);
-		child->sibling = trie->children;
-		trie->children = child;
+		child = trie_node(*data);
+		child->sibling = t->children;
+		t->children = child;
 	}
 
 	if(length == 1) {
 		child->value = value;
 	} else {
 		// oh, tail recursion... how I wish you existed in C.
-		Trie_add(child, data + 1, length - 1, value);
+		trie_add(child, data + 1, length - 1, value);
 	}
 }
 
-char * Trie_get(Trie * trie, char * data, int length)
+char * trie_get(trie * t, char * data, int length)
 {
-	Trie * child = trie;
+	trie * child = t;
 
 	// look for the child
 	while(length > 0) {
@@ -84,14 +84,14 @@ char * Trie_get(Trie * trie, char * data, int length)
 
 /*
 int main() {
-	Trie * trie = Trie_new();
-	Trie_add(trie, "foo", 3, "foo");
-	Trie_add(trie, "bar", 3, "bar");
-	Trie_add(trie, "food", 4, "food");
+	trie * trie = trie_new();
+	trie_add(trie, "foo", 3, "foo");
+	trie_add(trie, "bar", 3, "bar");
+	trie_add(trie, "food", 4, "food");
 
-	printf("foo: %s\n", Trie_get(trie, "foo", 3));
-	printf("food: %s\n", Trie_get(trie, "food", 4));
-	printf("bar: %s\n", Trie_get(trie, "bar", 3));
-	printf("argh: %s\n", Trie_get(trie, "argh", 4));
+	printf("foo: %s\n", trie_get(trie, "foo", 3));
+	printf("food: %s\n", trie_get(trie, "food", 4));
+	printf("bar: %s\n", trie_get(trie, "bar", 3));
+	printf("argh: %s\n", trie_get(trie, "argh", 4));
 }
 */
