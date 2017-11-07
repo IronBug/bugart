@@ -51,6 +51,10 @@ Request * Request_new(struct evhttp_request * ev_req)
 
 void Request_free(Request * r)
 {
+	if(r->params) {
+		evhttp_clear_headers(r->params);
+		free(r->params);
+	}
         free(r);
 }
 
@@ -190,6 +194,8 @@ void request_handler(struct evhttp_request * ev_req, void * context)
                 evhttp_send_reply(ev_req, 404, "Not Found", response->buffer);
         }
 
+        Request_free(request);
+        Response_free(response);
         evbuffer_free(response->buffer);
 
         gettimeofday(&t1, NULL);

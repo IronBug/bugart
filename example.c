@@ -14,8 +14,10 @@ void handler_create(Request * request, Response * response)
 	const char *name = params("name");
 	if(id && name) {
 		redisReply *reply = redisCommand(globalContext.rc, "HSET User:%s %s %s", id, "name", name);
-		body("User created.");
-		freeReplyObject(reply);
+		if(reply) {
+			body("User created.");
+			freeReplyObject(reply);
+		}
 	} else {
 		body("Error: Params \"id\" and \"name\" required.");
 	}
@@ -26,8 +28,16 @@ void handler_show(Request * request, Response * response)
 	const char *id = params("id");
 	if(id) {
 		redisReply *reply = redisCommand(globalContext.rc, "HGET User:%s %s", id, "name");
-		view("index.cml", map("name", reply->str));
-		freeReplyObject(reply);
+		if(reply) {
+			if(reply->str) {
+				Trie *m =  map("name", reply->str);
+				view("index.cml",m);
+				Trie_free(m);
+			} else {
+				body("No such user2.");
+			}
+			freeReplyObject(reply);
+		}
 	} else {
 		body("Error: Param \"id\" required.");
 	}
