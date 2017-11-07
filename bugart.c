@@ -8,9 +8,6 @@
 // hax!  libevent doesn't export evkeyvalq definition properly
 #include <sys/queue.h>
 
-#define BOGART_NOT_FOUND_DEFAULT ^ void (Request * request, Response * response) {}
-
-
 Map makeMap(void * dummy, ...)
 {
 	va_list ap;
@@ -25,22 +22,22 @@ Map makeMap(void * dummy, ...)
 	return newMap;
 }
 
-Response * Response_new(struct evbuffer * buffer)
+response_s * response_s_new(struct evbuffer * buffer)
 {
-	Response * r = (Response *) malloc(sizeof(Response));
+	response_s * r = (response_s *) malloc(sizeof(response_s));
 	r->code = 200;
 	r->buffer = buffer;
 	return r;
 }
 
-void Response_free(Response * r)
+void response_s_free(response_s * r)
 {
 	free(r);
 }
 
-Request * Request_new(struct evhttp_request * ev_req)
+request_s * request_s_new(struct evhttp_request * ev_req)
 {
-	Request * r = (Request *) malloc(sizeof(Request));
+	request_s * r = (request_s *) malloc(sizeof(request_s));
 	r->ev_req = ev_req;
 	r->uri = evhttp_request_uri(ev_req);
 	r->params = (struct evkeyvalq *) malloc(sizeof(struct evkeyvalq));
@@ -48,7 +45,7 @@ Request * Request_new(struct evhttp_request * ev_req)
 	return r;
 }
 
-void Request_free(Request * r)
+void request_s_free(request_s * r)
 {
 	if(r->params) {
 		evhttp_clear_headers(r->params);
@@ -77,7 +74,7 @@ bool match_uri(const char * pattern, const char * uri)
 	return (!*pattern && !*uri) || (!*pattern && *uri);
 }
 
-Route * match_route(Route * route, Request * req)
+route_s * match_route(route_s * route, request_s * req)
 {
 	while(route) {
 		if(req->ev_req->type == route->type && match_uri(route->pattern, req->ev_req->uri))
@@ -88,14 +85,14 @@ Route * match_route(Route * route, Request * req)
 	return NULL;
 }
 
-Route * nextRoute(char * pattern, enum evhttp_cmd_type type, BugartContext * bugart)
+route_s * nextroute_s(char * pattern, enum evhttp_cmd_type type, bugart_context_s * bugart)
 {
-	Route * new_route = (Route *) malloc(sizeof(Route));
+	route_s * new_route = (route_s *) malloc(sizeof(route_s));
 	new_route->pattern = pattern;
 	new_route->next = NULL;
 	new_route->type = type;
 	if(bugart->route) {
-		Route * cursor = bugart->route;
+		route_s * cursor = bugart->route;
 		while(cursor->next)
 			cursor = cursor->next;
 		cursor->next = new_route;
@@ -105,12 +102,12 @@ Route * nextRoute(char * pattern, enum evhttp_cmd_type type, BugartContext * bug
 	return new_route;
 }
 
-const char * getParam(Request * request, const char * key)
+const char * get_param(request_s * request, const char * key)
 {
 	return evhttp_find_header(request->params, key);
 }
 
-void renderText(Response * response, char * template, Map args)
+void render_text(response_s * response, char * template, Map args)
 {
 	char anchor[] = "%{";
 	char * cursor;
@@ -147,21 +144,21 @@ char * loadTemplate(char * filename)
 	return result;
 }
 
-void renderTemplate(Response * response, char * filename, Map args)
+void render_template(response_s * response, char * filename, Map args)
 {
 	char * template = loadTemplate(filename);
-	renderText(response, template, args);
+	render_text(response, template, args);
 	free(template);
 }
 
-void setBody(Response * response, const char * pattern, ...)
+void set_body(response_s * response, const char * pattern, ...)
 {
 	va_list ap;
 	va_start(ap, pattern);
 	evbuffer_add_vprintf(response->buffer, pattern, ap);
 }
 
-void finalizeRoutes(Route * route)
+void finalizeroute_ss(route_s * route)
 {
 	while(route) {
 		// todo: add finializing routes here
@@ -171,20 +168,20 @@ void finalizeRoutes(Route * route)
 	}
 }
 
-void setupHandlers(BugartContext *);
+void setuphandler_func_ts(bugart_context_s *);
 
 void request_handler(struct evhttp_request * ev_req, void * context)
 {
 	struct timeval t0, t1, tr;
 
-	BugartContext * bugart = (BugartContext *) context;
+	bugart_context_s * bugart = (bugart_context_s *) context;
 
 	gettimeofday(&t0, NULL);
 
-	Request * request = Request_new(ev_req);
-	Response * response = Response_new(evbuffer_new());
+	request_s * request = request_s_new(ev_req);
+	response_s * response = response_s_new(evbuffer_new());
 
-	Route * matched_route = match_route(bugart->route, request);
+	route_s * matched_route = match_route(bugart->route, request);
 
 	if(matched_route) {
 		matched_route->handler(request, response);
@@ -194,38 +191,38 @@ void request_handler(struct evhttp_request * ev_req, void * context)
 		evhttp_send_reply(ev_req, 404, "Not Found", response->buffer);
 	}
 
-	Request_free(request);
-	Response_free(response);
+	request_s_free(request);
+	response_s_free(response);
 	evbuffer_free(response->buffer);
 
 	gettimeofday(&t1, NULL);
 	timersub(&t1, &t0, &tr);
-	printf("Request processed in: %lu secs, %lu usecs\n", tr.tv_sec, tr.tv_usec);
+	printf("request_s processed in: %lu secs, %lu usecs\n", tr.tv_sec, tr.tv_usec);
 }
 
-void handler_not_found(Request * request, Response * response)
+void handler_not_found(request_s * request, response_s * response)
 {
-	printf("Handler: Not found\n");
+	printf("handler_func_t: Not found\n");
 }
 
-void setupBugart(BugartContext * bugart)
+void setupBUGART(bugart_context_s * bugart)
 {
 	bugart->not_found = handler_not_found;
-	setupHandlers(bugart);
+	setuphandler_func_ts(bugart);
 }
 
-void startBugart(uint16_t port, BugartContext * bugart)
+void start_bugart(uint16_t port, bugart_context_s * bugart)
 {
 	bugart->port = port;
 
-	setupBugart(bugart);
+	setupBUGART(bugart);
 
 	struct event_base * base = event_init();
-	globalContext.http = evhttp_new(base);
-	evhttp_bind_socket(globalContext.http, "127.0.0.1", bugart->port);
-	evhttp_set_gencb(globalContext.http, request_handler, bugart);
+	bugart_global_context.http = evhttp_new(base);
+	evhttp_bind_socket(bugart_global_context.http, "127.0.0.1", bugart->port);
+	evhttp_set_gencb(bugart_global_context.http, request_handler, bugart);
 
-	printf("Showtime! Bugart's ready on camera %u...\n", bugart->port);
+	printf("Showtime! BUGART's ready on camera %u...\n", bugart->port);
 
 	event_loop(0);
 }

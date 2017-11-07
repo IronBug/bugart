@@ -1,17 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct _trie {
+struct _trie_s {
 	char state;
 	char * value;
-	struct _trie * sibling;
-	struct _trie * children;
+	struct _trie_s * sibling;
+	struct _trie_s * children;
 };
-typedef struct _trie trie;
+typedef struct _trie_s trie_s;
 
-trie * trie_new()
+trie_s * trie_new()
 {
-	trie * t = (trie *) malloc(sizeof(trie));
+	trie_s * t = (trie_s *) malloc(sizeof(trie_s));
 	t->state = '\0';
 	t->value = NULL;
 	t->sibling = NULL;
@@ -19,7 +19,7 @@ trie * trie_new()
 	return t;
 }
 
-void trie_free(trie * t)
+void trie_free(trie_s * t)
 {
 	if(t->sibling)
 		trie_free(t->sibling);
@@ -28,17 +28,17 @@ void trie_free(trie * t)
 	free(t);
 }
 
-trie * trie_node(char state)
+trie_s * trie_node(char state)
 {
-	trie * t = trie_new();
+	trie_s * t = trie_new();
 	t->state = state;
 	return t;
 }
 
-void trie_add(trie * t, char * data, int length, char * value)
+void trie_add(trie_s * t, char * data, int length, char * value)
 {
 	// look for the child
-	trie * child = t->children;
+	trie_s * child = t->children;
 	while(child) {
 		if(child->state == *data)
 			break;
@@ -60,9 +60,9 @@ void trie_add(trie * t, char * data, int length, char * value)
 	}
 }
 
-char * trie_get(trie * t, char * data, int length)
+char * trie_get(trie_s * t, char * data, int length)
 {
-	trie * child = t;
+	trie_s * child = t;
 
 	// look for the child
 	while(length > 0) {
@@ -84,7 +84,7 @@ char * trie_get(trie * t, char * data, int length)
 
 /*
 int main() {
-	trie * trie = trie_new();
+	trie_s * trie = trie_new();
 	trie_add(trie, "foo", 3, "foo");
 	trie_add(trie, "bar", 3, "bar");
 	trie_add(trie, "food", 4, "food");

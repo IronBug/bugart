@@ -1,58 +1,59 @@
 #include <stdio.h>
 #include "bugart.h"
 
-BugartContextDefine;
+BUGART_CONTEXT_DEFINE;
 
-void handler_hello(Request * request, Response * response)
+void handler_hello(request_s * request, response_s * response)
 {
-	body("<h1>Hello, World!</h1>");
+	BODY("<h1>Hello, World!</h1>");
 }
 
-void handler_create(Request * request, Response * response)
+void handler_create(request_s * request, response_s * response)
 {
-	const char *id = params("id");
-	const char *name = params("name");
+	const char *id = PARAMS("id");
+	const char *name = PARAMS("name");
 	if(id && name) {
-		redisReply *reply = redisCommand(globalContext.rc, "HSET User:%s %s %s", id, "name", name);
+		redisReply *reply = redisCommand(bugart_global_context.rc, "HSET User:%s %s %s", id, "name", name);
 		if(reply) {
-			body("User created.");
+			BODY("User created.");
 			freeReplyObject(reply);
 		}
 	} else {
-		body("Error: Params \"id\" and \"name\" required.");
+		BODY("Error: Params \"id\" and \"name\" required.");
 	}
 }
 
-void handler_show(Request * request, Response * response)
+void handler_show(request_s * request, response_s * response)
 {
-	const char *id = params("id");
+	const char *id = PARAMS("id");
 	if(id) {
-		redisReply *reply = redisCommand(globalContext.rc, "HGET User:%s %s", id, "name");
+		redisReply *reply = redisCommand(bugart_global_context.rc, "HGET User:%s %s", id, "name");
 		if(reply) {
 			if(reply->str) {
-				trie *m =  map("name", reply->str);
+				trie_s *m =  map("name", reply->str);
 				view("index.cml",m);
 				trie_free(m);
 			} else {
-				body("No such user2.");
+				BODY("No such user2.");
 			}
 			freeReplyObject(reply);
 		}
 	} else {
-		body("Error: Param \"id\" required.");
+		BODY("Error: Param \"id\" required.");
 	}
 }
 
-Bugart {
-	UseRedis;
+BUGART
+{
+	USE_REDIS;
 	//Model(User, "name", "email");
 
-	get("/hello",handler_hello);
+	GET("/hello",handler_hello);
 
-	get("/create",handler_create);
+	GET("/create",handler_create);
 
-	get("/show",handler_show);
+	GET("/show",handler_show);
 
-	Start(11000);
+	START(11000);
 }
 

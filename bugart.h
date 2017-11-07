@@ -6,104 +6,110 @@
 #include <hiredis.h>
 #include "trie.h"
 
-typedef struct {
+typedef struct
+{
 	const char * uri;
 	struct evkeyvalq * params;
 	struct evhttp_request * ev_req;
-} Request;
+} request_s;
 
-typedef struct {
+typedef struct
+{
 	int code;
 	struct evbuffer * buffer;
-} Response;
+} response_s;
 
-typedef void (*Handler)(Request *, Response *);
+typedef void (*handler_func_t)(request_s *, response_s *);
 
-typedef struct _Route {
+typedef struct _route_s
+{
 	enum evhttp_cmd_type type;
 	char * pattern;
-	Handler handler;
-	struct _Route * next;
-} Route;
+	handler_func_t handler;
+	struct _route_s * next;
+} route_s;
 
-typedef struct {
+typedef struct
+{
 	uint16_t port;
 	void (*init_func)();
-	Handler not_found;
-	Route * route;
+	handler_func_t not_found;
+	route_s * route;
 	redisContext *rc;
 	struct evhttp * http;
-} BugartContext;
+} bugart_context_s;
 
-#define BugartContextDefine					\
-	BugartContext globalContext;				\
+#define BUGART_CONTEXT_DEFINE					\
+	bugart_context_s bugart_global_context;			\
 	void int_handler_func(int unused)			\
 	{							\
 		event_loopbreak();				\
-		if(globalContext.http)				\
-			evhttp_free(globalContext.http);	\
-		FreeRedis;					\
+		if(bugart_global_context.http)			\
+			evhttp_free(bugart_global_context.http);\
+		FREE_REDIS;					\
 		printf("\nUser break received. Exiting.\n");	\
 	}
 
 
-#define Bugart 	\
-	void setupHandlers(BugartContext * bugart)
+#define BUGART 	\
+	void setuphandler_func_ts(bugart_context_s * bugart)
 
-#define Start(_port)					\
-	finalizeRoutes(bugart->route);			\
-	}						\
-	int main() {					\
-		/* set processing for Ctrl-C */		\
-		signal(SIGINT, int_handler_func);	\
-		startBugart(_port, &globalContext);	\
+#define START(_port)						\
+	finalizeroute_ss(bugart->route);			\
+	}							\
+								\
+	int main() {						\
+		/* set processing for Ctrl-C */			\
+		signal(SIGINT, int_handler_func);		\
+		start_bugart(_port, &bugart_global_context);	\
 		return 0;
 
-#define get_end() );
+#define GET(_pattern,_function)		\
+	nextroute_s(_pattern, EVHTTP_REQ_GET, bugart)->handler = _function;
 
-#define get(_pattern,_function)	\
-	nextRoute(_pattern, EVHTTP_REQ_GET, bugart)->handler = _function;
+#define POST(_pattern,_function)	\
+	nextroute_s(_pattern, EVHTTP_REQ_POST, bugart)->handler = _function;
 
-#define post(_pattern)	\
-	nextRoute(_pattern, EVHTTP_REQ_POST, bugart)->handler = ^ void (Request * request, Response * response)
-
-#define status(_status)	\
+#define STATUS(_status)			\
 	response->code = _status;
 
-#define body(_pattern, ...)	\
-	setBody(response, _pattern, ##__VA_ARGS__)
+#define BODY(_pattern, ...)		\
+	set_body(response, _pattern, ##__VA_ARGS__)
 
-#define params(_key) getParam(request, _key)
+#define PARAMS(_key) get_param(request, _key)
 
-const char * getParam(Request *, const char *);
-void setBody(Response *, const char *, ...);
-void startBugart(uint16_t, BugartContext *);
-Route * nextRoute(char *, enum evhttp_cmd_type, BugartContext *);
-void finalizeRoutes(Route *);
+const char * get_param(request_s *, const char *);
+void set_body(response_s *, const char *, ...);
+void start_bugart(uint16_t, bugart_context_s *);
+route_s * nextroute_s(char *, enum evhttp_cmd_type, bugart_context_s *);
+void finalizeroute_ss(route_s *);
 
-typedef struct {
+typedef struct
+{
 	char * key;
 	char * value;
-} CharTuple;
+} char_tuple_s;
 
-typedef trie * Map;
+typedef trie_s * Map;
 
 #define map(...) makeMap(NULL, __VA_ARGS__, NULL)
 Map makeMap(void *, ...);
 
-#define render(_template, _map) renderText(response, _template, _map)
-void renderText(Response *, char *, Map);
+#define render(_template, _map) render_text(response, _template, _map)
+void render_text(response_s *, char *, Map);
 
-#define view(_filename, _map) renderTemplate(response, _filename, _map)
-void renderTemplate(Response *, char *, Map);
+#define view(_filename, _map) render_template(response, _filename, _map)
+void render_template(response_s *, char *, Map);
 
 /*
-typedef struct _ModelField {
+typedef struct _ModelField
+{
 	char * fieldName;
 	struct _ModelField * next;
 } ModelField;
 
-typedef struct {
+typedef struct
+{
 	char * name;
 	int redisFd;
 	ModelField * field;
@@ -117,10 +123,10 @@ Map modelGet(RedisModel, char **, char *);
 	RedisModel _name##Model = { #_name, _redisFd, _name##_fields, sizeof(_name##_fields) }
 */
 
-#define UseRedis	\
-	globalContext.rc = redisConnect("127.0.0.1", 6379)
+#define USE_REDIS	\
+	bugart_global_context.rc = redisConnect("127.0.0.1", 6379)
 
-#define FreeRedis	\
-	redisFree(globalContext.rc)
+#define FREE_REDIS	\
+	redisFree(bugart_global_context.rc)
 
-extern BugartContext globalContext;
+extern bugart_context_s bugart_global_context;
