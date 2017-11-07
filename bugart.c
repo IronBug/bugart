@@ -192,8 +192,9 @@ void request_handler(struct evhttp_request * ev_req, void * context)
 	}
 
 	request_s_free(request);
+	if(response->buffer)
+		evbuffer_free(response->buffer);
 	response_s_free(response);
-	evbuffer_free(response->buffer);
 
 	gettimeofday(&t1, NULL);
 	timersub(&t1, &t0, &tr);
@@ -222,7 +223,7 @@ void start_bugart(uint16_t port, bugart_context_s * bugart)
 	evhttp_bind_socket(bugart_global_context.http, "127.0.0.1", bugart->port);
 	evhttp_set_gencb(bugart_global_context.http, request_handler, bugart);
 
-	printf("Showtime! BUGART's ready on camera %u...\n", bugart->port);
+	printf("Showtime! Bugart's ready on camera %u...\n", bugart->port);
 
 	event_loop(0);
 }
